@@ -1,6 +1,8 @@
-import { Body, BadRequestException, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { QuestsService } from './quests.service';
-import { selectQuestSchema, SelectQuestDto } from './dto/select-quest.dto';
+import { selectQuestSchema } from './select-quest.schema';
+import type { SelectQuestInput } from './select-quest.schema';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
 // Define o caminho base das rotas desse controller
 // Tudo aqui dentro começa com /quests
@@ -10,32 +12,14 @@ export class QuestsController {
 
   // Cria uma rota POST com caminho "select"
   // Resultado final: POST /quests/select
-  @Post('select')
-  selectQuest(@Body() body: unknown) {
-    const result = selectQuestSchema.safeParse(body);
+    @Post('select')
+    selectQuest(
+    @Body(new ZodValidationPipe(selectQuestSchema)) body: SelectQuestInput,
+    ) {
 
-    if (!result.success) {
-      throw new BadRequestException(result.error.issues);
+    return this.questService.selectQuest(body.questId);
+
     }
-
-    const validBody = result.data as SelectQuestDto;
-    const selectQuest = this.questService.fintQuestById(validBody.questId);
-
-    if (this.questService.hasActiveQuest()) {
-      return { message: 'você já possui uma quest ativa' };
-    }
-
-    if (!selectQuest) {
-      return { message: 'quest não encontrada' };
-    }
-
-    this.questService.setActiveQuest(selectQuest);
-
-    return {
-      message: 'quest recebida',
-      quest: selectQuest,
-    };
-  }
 
   @Get()
   getAllQuests() {
@@ -49,17 +33,6 @@ export class QuestsController {
 
     @Post('complete')
     completeQuest() {
-        if (!this.questService.hasActiveQuest()){
-            return {
-                message: 'não existe quest ativa para concluir',
-            };
-        }
-
-        this.questService.completeActiveQuest();
-        
-        return {
-            message: 'quest concluída',
-        }
+    return this.questService.completeQuest();
     }
-
 }
