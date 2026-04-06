@@ -3,9 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { QuestsController } from './quests/quests.controller';
 import { QuestsService } from './quests/quests.service';
+import { DiceModule } from './dice/dice.module';
 
 @Module({
-  imports: [],
+  imports: [DiceModule],
   controllers: [AppController, QuestsController],
   providers: [AppService, QuestsService],
 })
