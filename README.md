@@ -83,6 +83,8 @@ src/
 │   ├── maps/
 │   └── mocks/
 
+```
+
 <div align="center">
 
 ## 🛠️ Instalação
