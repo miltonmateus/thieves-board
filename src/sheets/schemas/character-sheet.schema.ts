@@ -29,4 +29,8 @@ export const characterSheetSchema = z.object({
   anotacoes: z.string().optional(),
 });
 
-export type characterSheet = z.infer<typeof characterSheetSchema>;
+export type CharacterSheet = z.infer<typeof characterSheetSchema>;
+
+export const updateCharacterSheetSchema = characterSheetSchema.partial();
+
+export type UpdateCharacterSheet = z.infer<typeof updateCharacterSheetSchema>;
