@@ -70,6 +70,7 @@ DELETE /sheets/:id
 
 </div>
 
+```bash
 src/
 ├── common/
 ├── quests/
@@ -81,8 +82,6 @@ src/
 │   ├── schemas/
 │   ├── maps/
 │   └── mocks/
-
----
 
 <div align="center">
 
