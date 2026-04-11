@@ -2,6 +2,8 @@
 
 # 🗡️ Thieves Board API
 
+![Legenda](./src/assets/Logo.png)
+
 Backend do sistema **Thieves Board**, responsável por gerenciar fichas, quests e mecânicas de RPG.
 
 </div>
