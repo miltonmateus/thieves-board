@@ -8,7 +8,11 @@ import { SheetsModule } from './sheets/sheets.module';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [DiceModule, SheetsModule, MongooseModule.forRoot('mongodb://127.0.0.1:27017/thieves-board')],
+  imports: [
+    DiceModule,
+    SheetsModule,
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/thieves-board'),
+  ],
   controllers: [AppController, QuestsController],
   providers: [AppService, QuestsService],
 })

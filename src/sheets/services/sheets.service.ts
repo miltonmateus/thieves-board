@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
 import { CharacterSheetParser } from '../parsers/character-sheet.parser';
@@ -8,7 +12,6 @@ import {
 } from '../schemas/character-sheet.mongo';
 import { PdfTextExtractorService } from './pdf-text-extractor.service';
 import {
-  characterSheetSchema,
   updateCharacterSheetSchema,
   type UpdateCharacterSheet,
 } from '../schemas/character-sheet.schema';
@@ -77,7 +80,9 @@ export class SheetsService {
       throw new BadRequestException('ID inválido.');
     }
 
-    const deletedSheet = await this.characterSheetModel.findByIdAndDelete(id).lean();
+    const deletedSheet = await this.characterSheetModel
+      .findByIdAndDelete(id)
+      .lean();
 
     if (!deletedSheet) {
       throw new NotFoundException('Ficha não encontrada.');

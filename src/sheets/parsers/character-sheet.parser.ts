@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CHARACTER_SHEET_DEFAULTS, CHARACTER_SHEET_PATTERNS } from '../maps/character-sheet.map';
+import {
+  CHARACTER_SHEET_DEFAULTS,
+  CHARACTER_SHEET_PATTERNS,
+} from '../maps/character-sheet.map';
 import {
   characterSheetSchema,
   type CharacterSheet,
@@ -10,18 +13,54 @@ export class CharacterSheetParser {
   parse(text: string): CharacterSheet {
     const normalizedText = this.normalizeText(text);
 
-    const rawNome = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.nome);
-    const rawJogador = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.jogador);
-    const rawDataCriacao = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.dataCriacao);
-    const rawPp = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.pp);
-    const rawPpParaGastar = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.ppParaGastar);
-    const rawAparencia = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.aparencia);
-    const rawCenario = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.cenario);
-    const rawHistoria = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.historia);
-    const rawAltura = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.altura);
-    const rawPeso = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.peso);
-    const rawCm = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.cm);
-    const rawAnotacoes = this.extractSingleValue(normalizedText, CHARACTER_SHEET_PATTERNS.anotacoes);
+    const rawNome = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.nome,
+    );
+    const rawJogador = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.jogador,
+    );
+    const rawDataCriacao = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.dataCriacao,
+    );
+    const rawPp = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.pp,
+    );
+    const rawPpParaGastar = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.ppParaGastar,
+    );
+    const rawAparencia = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.aparencia,
+    );
+    const rawCenario = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.cenario,
+    );
+    const rawHistoria = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.historia,
+    );
+    const rawAltura = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.altura,
+    );
+    const rawPeso = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.peso,
+    );
+    const rawCm = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.cm,
+    );
+    const rawAnotacoes = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.anotacoes,
+    );
 
     const rawTamanho = normalizedText.match(CHARACTER_SHEET_PATTERNS.tamanho);
     const rawInventarioSection = this.extractSingleValue(
@@ -53,9 +92,12 @@ export class CharacterSheetParser {
       pp: this.toNullableNumber(rawPp),
       ppParaGastar: this.toNullableNumber(rawPpParaGastar),
 
-      inventario: this.toStringList(rawInventarioSection) ?? [...CHARACTER_SHEET_DEFAULTS.inventario],
-      marcasPessoais:
-        this.toStringList(rawMarcasPessoaisSection) ?? [...CHARACTER_SHEET_DEFAULTS.marcasPessoais],
+      inventario: this.toStringList(rawInventarioSection) ?? [
+        ...CHARACTER_SHEET_DEFAULTS.inventario,
+      ],
+      marcasPessoais: this.toStringList(rawMarcasPessoaisSection) ?? [
+        ...CHARACTER_SHEET_DEFAULTS.marcasPessoais,
+      ],
 
       anotacoes: this.toOptionalString(rawAnotacoes),
     };
@@ -63,7 +105,10 @@ export class CharacterSheetParser {
     return characterSheetSchema.parse(parsedData);
   }
 
-  private extractSingleValue(text: string, pattern: RegExp): string | undefined {
+  private extractSingleValue(
+    text: string,
+    pattern: RegExp,
+  ): string | undefined {
     const match = text.match(pattern);
 
     if (!match?.[1]) {

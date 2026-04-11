@@ -41,8 +41,8 @@ export class SheetsController {
     return this.sheetsService.parseCharacterSheetFromText(fakeText);
   }
 
-    @Post('upload-character-pdf')
-    async uploadCharacterPdf(@Req() request: FastifyRequest) {
+  @Post('upload-character-pdf')
+  async uploadCharacterPdf(@Req() request: FastifyRequest) {
     const file = await request.file();
 
     if (!file) {
@@ -58,7 +58,7 @@ export class SheetsController {
     return this.sheetsService.parseAndSaveCharacterSheetFromPdf(buffer);
   }
 
-    @Get()
+  @Get()
   async findAll() {
     return this.sheetsService.findAll();
   }
@@ -73,9 +73,7 @@ export class SheetsController {
     return this.sheetsService.removeById(id);
   }
 
-  private async streamToBuffer(
-    stream: NodeJS.ReadableStream,
-  ): Promise<Buffer> {
+  private async streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
     const chunks: Buffer[] = [];
 
     for await (const chunk of stream) {
@@ -86,10 +84,10 @@ export class SheetsController {
   }
 
   @Patch(':id')
-    async updateById(
+  async updateById(
     @Param('id') id: string,
     @Body() body: UpdateCharacterSheet,
-    ) {
+  ) {
     return this.sheetsService.updateById(id, body);
   }
 }

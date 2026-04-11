@@ -1,4 +1,3 @@
-
 export const CHARACTER_SHEET_PATTERNS = {
   nome: /Nome:\s*(.*?)\s+Jogador:/i,
   jogador: /Jogador:\s*(.*?)(?:\n|$)/i,
@@ -19,7 +18,8 @@ export const CHARACTER_SHEET_PATTERNS = {
   cm: /CM:\s*(.*?)(?:\n|$)/i,
 
   inventarioSection: /Inventário([\s\S]*?)MARCAS PESSOAIS/i,
-  marcasPessoaisSection: /MARCAS PESSOAIS([\s\S]*?)(?:Ficha de Personagem\s+Anotações:|Anotações:|$)/i,
+  marcasPessoaisSection:
+    /MARCAS PESSOAIS([\s\S]*?)(?:Ficha de Personagem\s+Anotações:|Anotações:|$)/i,
 
   anotacoes: /Anotações:\s*([\s\S]*)/i,
 } as const;

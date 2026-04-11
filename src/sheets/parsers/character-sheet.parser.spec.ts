@@ -1,4 +1,4 @@
-import { CharacterSheetParser } from "./character-sheet.parser";
+import { CharacterSheetParser } from './character-sheet.parser';
 
 describe('CharacterSheetParser', () => {
   it('should parse character sheet text correctly', () => {
