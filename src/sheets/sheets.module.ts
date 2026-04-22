@@ -8,6 +8,8 @@ import {
   CharacterSheet,
   CharacterSheetSchema,
 } from './schemas/character-sheet.mongo';
+import { PdfImageConverterService } from './services/pdf-image-converter.service';
+import { PdfOcrService } from './services/pdf-ocr.service';
 
 @Module({
   imports: [
@@ -16,6 +18,12 @@ import {
     ]),
   ],
   controllers: [SheetsController],
-  providers: [SheetsService, CharacterSheetParser, PdfTextExtractorService],
+  providers: [
+    SheetsService,
+    CharacterSheetParser,
+    PdfTextExtractorService,
+    PdfOcrService,
+    PdfImageConverterService,
+  ],
 })
 export class SheetsModule {}
