@@ -1,39 +1,69 @@
-import { questsMock } from "./mocks/quests.mock";
-import { Quest } from "./types/quest.type";
+import { questsMock } from './mocks/quests.mock';
+import { Quest } from './types/quest.type';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 export class QuestsService {
+  private activeQuest: Quest | null = null;
 
-    private activeQuest: Quest | null = null;
+  setActiveQuest(quest: Quest) {
+    this.activeQuest = quest;
+  }
 
-    setActiveQuest(quest: Quest) {
-        this.activeQuest = quest;
+  hasActiveQuest() {
+    return this.activeQuest !== null;
+  }
+
+  findQuestById(questId: string) {
+    //questsMock.find((quest) => quest.id === questId);
+    for (let i = 0; i < questsMock.length; i++) {
+      const quest = questsMock[i];
+
+      if (quest.id === questId) {
+        return quest;
+      }
+    }
+    return undefined;
+  }
+
+  getAllQuests() {
+    return questsMock;
+  }
+
+  getActiveQuest() {
+    return this.activeQuest;
+  }
+
+  completeActiveQuest() {
+    this.activeQuest = null;
+  }
+
+  selectQuest(questId: string) {
+    if (this.hasActiveQuest()) {
+      throw new ConflictException('você já possui uma quest ativa');
     }
 
-    hasActiveQuest() {
-        return this.activeQuest !== null;
+    const quest = this.findQuestById(questId);
+
+    if (!quest) {
+      throw new NotFoundException('quest não encontrada');
     }
 
-    fintQuestById(questId: string) {
-        //questsMock.find((quest) => quest.id === questId);
-        for (let i = 0; i < questsMock.length; i++) {
-            const quest = questsMock[i];
+    this.setActiveQuest(quest);
 
-            if (quest.id === questId) {
-                return quest;
-            }
-        }
-        return undefined;
-    }
+    return {
+      message: 'quest recebida',
+      quest,
+    };
+  }
 
-    getAllQuests() {
-        return questsMock;
+  completeQuest() {
+    if (!this.hasActiveQuest()) {
+      throw new ConflictException('não existe quest ativa para concluir');
     }
+    this.completeActiveQuest();
 
-    getActiveQuest() {
-        return this.activeQuest;
-    }
-
-    completeActiveQuest() {
-        this.activeQuest = null;
-    }
+    return {
+      message: 'quest concluída',
+    };
+  }
 }

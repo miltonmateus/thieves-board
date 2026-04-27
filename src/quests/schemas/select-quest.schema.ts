@@ -4,4 +4,4 @@ export const selectQuestSchema = z.object({
   questId: z.string().nonempty(),
 });
 
-export type SelectQuestDto = z.infer<typeof selectQuestSchema>;
+export type SelectQuestInput = z.infer<typeof selectQuestSchema>;
