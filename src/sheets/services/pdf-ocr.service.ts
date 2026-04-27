@@ -26,4 +26,10 @@ export class PdfOcrService {
 
     return finalText;
   }
+
+  async extractFromImage(buffer: Buffer): Promise<string> {
+    const result = await Tesseract.recognize(buffer, 'por');
+
+    return result.data.text;
+  }
 }

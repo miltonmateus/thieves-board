@@ -17,6 +17,12 @@ import type { UpdateCharacterSheet } from './schemas/character-sheet.schema';
 export class SheetsController {
   constructor(private readonly sheetsService: SheetsService) {}
 
+  private readonly supportedFileTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+  ];
+
   @Get('test-character')
   testCharacter() {
     const fakeText = `
@@ -43,19 +49,19 @@ export class SheetsController {
 
   @Post('upload-character-pdf')
   async uploadCharacterPdf(@Req() request: FastifyRequest) {
-    const file = await request.file();
+    const { buffer, mimetype } = await this.readSupportedFile(request);
 
-    if (!file) {
-      throw new BadRequestException('Nenhum arquivo foi enviado.');
-    }
+    return this.sheetsService.parseAndSaveCharacterSheetFromFile(
+      buffer,
+      mimetype,
+    );
+  }
 
-    if (file.mimetype !== 'application/pdf') {
-      throw new BadRequestException('O arquivo enviado precisa ser um PDF.');
-    }
+  @Post('preview-character-file')
+  async previewCharacterFile(@Req() request: FastifyRequest) {
+    const { buffer, mimetype } = await this.readSupportedFile(request);
 
-    const buffer = await this.streamToBuffer(file.file);
-
-    return this.sheetsService.parseAndSaveCharacterSheetFromPdf(buffer);
+    return this.sheetsService.previewCharacterSheetFromFile(buffer, mimetype);
   }
 
   @Get()
@@ -81,6 +87,26 @@ export class SheetsController {
     }
 
     return Buffer.concat(chunks);
+  }
+
+  private async readSupportedFile(request: FastifyRequest) {
+    const file = await request.file();
+
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo foi enviado.');
+    }
+
+    if (!this.supportedFileTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'O arquivo enviado precisa ser um PDF, JPG ou PNG.',
+      );
+    }
+
+    return {
+      buffer: await this.streamToBuffer(file.file),
+      filename: file.filename,
+      mimetype: file.mimetype,
+    };
   }
 
   @Patch(':id')

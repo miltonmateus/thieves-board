@@ -15,6 +15,7 @@ import {
   updateCharacterSheetSchema,
   type UpdateCharacterSheet,
 } from '../schemas/character-sheet.schema';
+import { PdfOcrService } from './pdf-ocr.service';
 
 @Injectable()
 export class SheetsService {
@@ -23,31 +24,57 @@ export class SheetsService {
     private readonly characterSheetModel: Model<CharacterSheetDocument>,
     private readonly characterSheetParser: CharacterSheetParser,
     private readonly pdfTextExtractorService: PdfTextExtractorService,
+    private readonly pdfOcrService: PdfOcrService,
   ) {}
 
   parseCharacterSheetFromText(text: string) {
     return this.characterSheetParser.parse(text);
   }
 
-  async parseCharacterSheetFromPdf(buffer: Buffer) {
+  async extractTextFromFile(buffer: Buffer, mimetype: string) {
     if (!buffer.length) {
-      throw new BadRequestException('O arquivo PDF está vazio.');
+      throw new BadRequestException('O arquivo enviado está vazio.');
     }
 
-    const extractedText =
-      await this.pdfTextExtractorService.extractText(buffer);
+    let extractedText = '';
+
+    if (mimetype === 'application/pdf') {
+      extractedText = await this.pdfTextExtractorService.extractText(buffer);
+    }
+
+    if (mimetype.startsWith('image/')) {
+      extractedText = await this.pdfOcrService.extractFromImage(buffer);
+    }
 
     if (!extractedText.trim()) {
       throw new BadRequestException(
-        'Não foi possível extrair texto do PDF enviado.',
+        'Não foi possível extrair texto do arquivo enviado.',
       );
     }
+
+    return extractedText;
+  }
+
+  async previewCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
+    const extractedText = await this.extractTextFromFile(buffer, mimetype);
+
+    return {
+      extractedText,
+      parsedSheet: this.characterSheetParser.parse(extractedText),
+    };
+  }
+
+  async parseCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
+    const extractedText = await this.extractTextFromFile(buffer, mimetype);
 
     return this.characterSheetParser.parse(extractedText);
   }
 
-  async parseAndSaveCharacterSheetFromPdf(buffer: Buffer) {
-    const parsedSheet = await this.parseCharacterSheetFromPdf(buffer);
+  async parseAndSaveCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
+    const parsedSheet = await this.parseCharacterSheetFromFile(
+      buffer,
+      mimetype,
+    );
 
     const createdSheet = await this.characterSheetModel.create(parsedSheet);
 
