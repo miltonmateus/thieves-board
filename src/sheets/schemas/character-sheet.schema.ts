@@ -1,36 +1,62 @@
 import { z } from 'zod';
 
+const optionalTextSchema = z.string().trim().min(1).optional();
+
+const stringListSchema = z.array(z.string().trim().min(1));
+
+const nonNegativeNullableNumberSchema = z
+  .number()
+  .nonnegative()
+  .nullable();
+
+const sizeSchema = z
+  .object({
+    largura: nonNegativeNullableNumberSchema,
+    altura: nonNegativeNullableNumberSchema,
+  })
+  .strict();
+
+const brazilianDateSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{2}\/\d{2}\/\d{4}$/)
+  .optional();
+
 export const characterSheetSchema = z.object({
-  nome: z.string().optional(),
-  jogador: z.string().optional(),
+  nome: optionalTextSchema,
+  jogador: optionalTextSchema,
 
-  dataCriacao: z.string().optional(),
+  dataCriacao: brazilianDateSchema,
 
-  aparencia: z.string().optional(),
-  cenario: z.string().optional(),
-  historia: z.string().optional(),
+  aparencia: optionalTextSchema,
+  cenario: optionalTextSchema,
+  historia: optionalTextSchema,
 
-  tamanho: z.object({
-    largura: z.number().nullable(),
-    altura: z.number().nullable(),
-  }),
+  tamanho: sizeSchema,
 
-  altura: z.number().nullable(),
-  peso: z.number().nullable(),
+  altura: nonNegativeNullableNumberSchema,
+  peso: nonNegativeNullableNumberSchema,
 
-  cm: z.number().nullable(),
+  cm: nonNegativeNullableNumberSchema,
 
-  pp: z.number().nullable(),
-  ppParaGastar: z.number().nullable(),
+  pp: nonNegativeNullableNumberSchema,
+  ppParaGastar: nonNegativeNullableNumberSchema,
 
-  inventario: z.array(z.string()),
-  marcasPessoais: z.array(z.string()),
+  inventario: stringListSchema,
+  marcasPessoais: stringListSchema,
 
-  anotacoes: z.string().optional(),
-});
+  anotacoes: optionalTextSchema,
+}).strict();
 
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
-export const updateCharacterSheetSchema = characterSheetSchema.partial();
+export const updateCharacterSheetSchema = characterSheetSchema
+  .partial()
+  .extend({
+    tamanho: sizeSchema.partial().optional(),
+  })
+  .refine((payload) => Object.keys(payload).length > 0, {
+    message: 'Pelo menos um campo deve ser fornecido para atualização.',
+  });
 
 export type UpdateCharacterSheet = z.infer<typeof updateCharacterSheetSchema>;

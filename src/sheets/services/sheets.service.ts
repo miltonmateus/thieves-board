@@ -130,9 +130,14 @@ export class SheetsService {
       throw new BadRequestException('Body da requisição é obrigatório.');
     }
 
-    const validatedPayload = updateCharacterSheetSchema.parse(payload);
+    const result = updateCharacterSheetSchema.safeParse(payload);
+
+    if (!result.success) {
+      throw new BadRequestException(result.error.issues);
+    }
+
     const updatedSheet = await this.characterSheetModel
-      .findByIdAndUpdate(id, validatedPayload, {
+      .findByIdAndUpdate(id, result.data, {
         returnDocument: 'after',
         runValidators: true,
       })

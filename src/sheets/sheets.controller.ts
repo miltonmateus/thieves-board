@@ -47,8 +47,8 @@ export class SheetsController {
     return this.sheetsService.parseCharacterSheetFromText(fakeText);
   }
 
-  @Post('upload-character-pdf')
-  async uploadCharacterPdf(@Req() request: FastifyRequest) {
+  @Post('upload-character-file')
+  async uploadCharacterFile(@Req() request: FastifyRequest) {
     const { buffer, mimetype } = await this.readSupportedFile(request);
 
     return this.sheetsService.parseAndSaveCharacterSheetFromFile(
