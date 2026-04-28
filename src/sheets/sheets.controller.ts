@@ -47,8 +47,8 @@ export class SheetsController {
     return this.sheetsService.parseCharacterSheetFromText(fakeText);
   }
 
-  @Post('upload-character-pdf')
-  async uploadCharacterPdf(@Req() request: FastifyRequest) {
+  @Post('upload-character-file')
+  async uploadCharacterFile(@Req() request: FastifyRequest) {
     const { buffer, mimetype } = await this.readSupportedFile(request);
 
     return this.sheetsService.parseAndSaveCharacterSheetFromFile(
@@ -57,11 +57,33 @@ export class SheetsController {
     );
   }
 
+  @Post('upload-character-pdf')
+  async uploadCharacterPdf(@Req() request: FastifyRequest) {
+    return this.uploadCharacterFile(request);
+  }
+
   @Post('preview-character-file')
   async previewCharacterFile(@Req() request: FastifyRequest) {
     const { buffer, mimetype } = await this.readSupportedFile(request);
 
     return this.sheetsService.previewCharacterSheetFromFile(buffer, mimetype);
+  }
+
+  @Post('preview-magic-item-file')
+  async previewMagicItemFile(@Req() request: FastifyRequest) {
+    const { buffer, mimetype } = await this.readSupportedFile(request);
+
+    return this.sheetsService.previewMagicItemSheetFromFile(buffer, mimetype);
+  }
+
+  @Post('upload-magic-item-file')
+  async uploadMagicItemFile(@Req() request: FastifyRequest) {
+    const { buffer, mimetype } = await this.readSupportedFile(request);
+
+    return this.sheetsService.parseAndSaveMagicItemSheetFromFile(
+      buffer,
+      mimetype,
+    );
   }
 
   @Get()

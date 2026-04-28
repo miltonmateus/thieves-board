@@ -17,6 +17,7 @@ lerna-debug.log*
 
 # Tests
 /coverage
+src/coverage/
 /.nyc_output
 
 # TypeScript build cache
@@ -52,7 +53,10 @@ lerna-debug.log*
 .temp
 .tmp
 .codex
+item-teste.pdf
 teste.pdf
+docs/test-priority-report.html
+docs/test-priority-report.pdf
 
 # Runtime data
 pids

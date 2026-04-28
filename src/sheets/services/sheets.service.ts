@@ -5,30 +5,42 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
-import { CharacterSheetParser } from '../parsers/character-sheet.parser';
+import { CharacterSheetParser } from '../parsers/character-sheets/character-sheet.parser';
 import {
   CharacterSheet,
   CharacterSheetDocument,
 } from '../schemas/character-sheet.mongo';
+import {
+  MagicItemSheet,
+  MagicItemSheetDocument,
+} from '../schemas/magic-item-sheet.mongo';
 import { PdfTextExtractorService } from './pdf-text-extractor.service';
 import {
   updateCharacterSheetSchema,
   type UpdateCharacterSheet,
 } from '../schemas/character-sheet.schema';
 import { PdfOcrService } from './pdf-ocr.service';
+import { MagicItemSheetParser } from '../parsers/magic-item-sheets/magic-item-sheet.parser';
 
 @Injectable()
 export class SheetsService {
   constructor(
     @InjectModel(CharacterSheet.name)
     private readonly characterSheetModel: Model<CharacterSheetDocument>,
+    @InjectModel(MagicItemSheet.name)
+    private readonly magicItemSheetModel: Model<MagicItemSheetDocument>,
     private readonly characterSheetParser: CharacterSheetParser,
+    private readonly magicItemSheetParser: MagicItemSheetParser,
     private readonly pdfTextExtractorService: PdfTextExtractorService,
     private readonly pdfOcrService: PdfOcrService,
   ) {}
 
   parseCharacterSheetFromText(text: string) {
     return this.characterSheetParser.parse(text);
+  }
+
+  parseMagicItemSheetFromText(text: string) {
+    return this.magicItemSheetParser.parse(text);
   }
 
   async extractTextFromFile(buffer: Buffer, mimetype: string) {
@@ -38,12 +50,22 @@ export class SheetsService {
 
     let extractedText = '';
 
-    if (mimetype === 'application/pdf') {
-      extractedText = await this.pdfTextExtractorService.extractText(buffer);
-    }
+    try {
+      if (mimetype === 'application/pdf') {
+        extractedText = await this.pdfTextExtractorService.extractText(buffer);
+      }
 
-    if (mimetype.startsWith('image/')) {
-      extractedText = await this.pdfOcrService.extractFromImage(buffer);
+      if (mimetype.startsWith('image/')) {
+        extractedText = await this.pdfOcrService.extractFromImage(buffer);
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new BadRequestException(
+        'Não foi possível processar o arquivo enviado.',
+      );
     }
 
     if (!extractedText.trim()) {
@@ -64,10 +86,25 @@ export class SheetsService {
     };
   }
 
+  async previewMagicItemSheetFromFile(buffer: Buffer, mimetype: string) {
+    const extractedText = await this.extractTextFromFile(buffer, mimetype);
+
+    return {
+      extractedText,
+      parsedSheet: this.magicItemSheetParser.parse(extractedText),
+    };
+  }
+
   async parseCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
     const extractedText = await this.extractTextFromFile(buffer, mimetype);
 
     return this.characterSheetParser.parse(extractedText);
+  }
+
+  async parseMagicItemSheetFromFile(buffer: Buffer, mimetype: string) {
+    const extractedText = await this.extractTextFromFile(buffer, mimetype);
+
+    return this.magicItemSheetParser.parse(extractedText);
   }
 
   async parseAndSaveCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
@@ -77,6 +114,17 @@ export class SheetsService {
     );
 
     const createdSheet = await this.characterSheetModel.create(parsedSheet);
+
+    return createdSheet;
+  }
+
+  async parseAndSaveMagicItemSheetFromFile(buffer: Buffer, mimetype: string) {
+    const parsedSheet = await this.parseMagicItemSheetFromFile(
+      buffer,
+      mimetype,
+    );
+
+    const createdSheet = await this.magicItemSheetModel.create(parsedSheet);
 
     return createdSheet;
   }
@@ -130,9 +178,14 @@ export class SheetsService {
       throw new BadRequestException('Body da requisição é obrigatório.');
     }
 
-    const validatedPayload = updateCharacterSheetSchema.parse(payload);
+    const result = updateCharacterSheetSchema.safeParse(payload);
+
+    if (!result.success) {
+      throw new BadRequestException(result.error.issues);
+    }
+
     const updatedSheet = await this.characterSheetModel
-      .findByIdAndUpdate(id, validatedPayload, {
+      .findByIdAndUpdate(id, result.data, {
         returnDocument: 'after',
         runValidators: true,
       })

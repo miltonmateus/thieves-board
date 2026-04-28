@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { fromBuffer } from 'pdf2pic';
 
 @Injectable()
@@ -13,8 +13,16 @@ export class PdfImageConverterService {
 
     const pages = await convert.bulk(-1); // -1 = todas as páginas
 
-    return pages
+    const imagePaths = pages
       .map((page) => page.path)
       .filter((path): path is string => !!path);
+
+    if (imagePaths.length === 0) {
+      throw new BadRequestException(
+        'Não foi possível converter o PDF em imagem para OCR.',
+      );
+    }
+
+    return imagePaths;
   }
 }
