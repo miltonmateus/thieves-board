@@ -4,10 +4,7 @@ const optionalTextSchema = z.string().trim().min(1).optional();
 
 const stringListSchema = z.array(z.string().trim().min(1));
 
-const nonNegativeNullableNumberSchema = z
-  .number()
-  .nonnegative()
-  .nullable();
+const nonNegativeNullableNumberSchema = z.number().nonnegative().nullable();
 
 const sizeSchema = z
   .object({
@@ -22,31 +19,33 @@ const brazilianDateSchema = z
   .regex(/^\d{2}\/\d{2}\/\d{4}$/)
   .optional();
 
-export const characterSheetSchema = z.object({
-  nome: optionalTextSchema,
-  jogador: optionalTextSchema,
+export const characterSheetSchema = z
+  .object({
+    nome: optionalTextSchema,
+    jogador: optionalTextSchema,
 
-  dataCriacao: brazilianDateSchema,
+    dataCriacao: brazilianDateSchema,
 
-  aparencia: optionalTextSchema,
-  cenario: optionalTextSchema,
-  historia: optionalTextSchema,
+    aparencia: optionalTextSchema,
+    cenario: optionalTextSchema,
+    historia: optionalTextSchema,
 
-  tamanho: sizeSchema,
+    tamanho: sizeSchema,
 
-  altura: nonNegativeNullableNumberSchema,
-  peso: nonNegativeNullableNumberSchema,
+    altura: nonNegativeNullableNumberSchema,
+    peso: nonNegativeNullableNumberSchema,
 
-  cm: nonNegativeNullableNumberSchema,
+    cm: nonNegativeNullableNumberSchema,
 
-  pp: nonNegativeNullableNumberSchema,
-  ppParaGastar: nonNegativeNullableNumberSchema,
+    pp: nonNegativeNullableNumberSchema,
+    ppParaGastar: nonNegativeNullableNumberSchema,
 
-  inventario: stringListSchema,
-  marcasPessoais: stringListSchema,
+    inventario: stringListSchema,
+    marcasPessoais: stringListSchema,
 
-  anotacoes: optionalTextSchema,
-}).strict();
+    anotacoes: optionalTextSchema,
+  })
+  .strict();
 
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
