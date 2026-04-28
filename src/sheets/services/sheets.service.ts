@@ -10,25 +10,37 @@ import {
   CharacterSheet,
   CharacterSheetDocument,
 } from '../schemas/character-sheet.mongo';
+import {
+  MagicItemSheet,
+  MagicItemSheetDocument,
+} from '../schemas/magic-item-sheet.mongo';
 import { PdfTextExtractorService } from './pdf-text-extractor.service';
 import {
   updateCharacterSheetSchema,
   type UpdateCharacterSheet,
 } from '../schemas/character-sheet.schema';
 import { PdfOcrService } from './pdf-ocr.service';
+import { MagicItemSheetParser } from '../parsers/magic-item-sheets/magic-item-sheet.parser';
 
 @Injectable()
 export class SheetsService {
   constructor(
     @InjectModel(CharacterSheet.name)
     private readonly characterSheetModel: Model<CharacterSheetDocument>,
+    @InjectModel(MagicItemSheet.name)
+    private readonly magicItemSheetModel: Model<MagicItemSheetDocument>,
     private readonly characterSheetParser: CharacterSheetParser,
+    private readonly magicItemSheetParser: MagicItemSheetParser,
     private readonly pdfTextExtractorService: PdfTextExtractorService,
     private readonly pdfOcrService: PdfOcrService,
   ) {}
 
   parseCharacterSheetFromText(text: string) {
     return this.characterSheetParser.parse(text);
+  }
+
+  parseMagicItemSheetFromText(text: string) {
+    return this.magicItemSheetParser.parse(text);
   }
 
   async extractTextFromFile(buffer: Buffer, mimetype: string) {
@@ -74,10 +86,25 @@ export class SheetsService {
     };
   }
 
+  async previewMagicItemSheetFromFile(buffer: Buffer, mimetype: string) {
+    const extractedText = await this.extractTextFromFile(buffer, mimetype);
+
+    return {
+      extractedText,
+      parsedSheet: this.magicItemSheetParser.parse(extractedText),
+    };
+  }
+
   async parseCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
     const extractedText = await this.extractTextFromFile(buffer, mimetype);
 
     return this.characterSheetParser.parse(extractedText);
+  }
+
+  async parseMagicItemSheetFromFile(buffer: Buffer, mimetype: string) {
+    const extractedText = await this.extractTextFromFile(buffer, mimetype);
+
+    return this.magicItemSheetParser.parse(extractedText);
   }
 
   async parseAndSaveCharacterSheetFromFile(buffer: Buffer, mimetype: string) {
@@ -87,6 +114,17 @@ export class SheetsService {
     );
 
     const createdSheet = await this.characterSheetModel.create(parsedSheet);
+
+    return createdSheet;
+  }
+
+  async parseAndSaveMagicItemSheetFromFile(buffer: Buffer, mimetype: string) {
+    const parsedSheet = await this.parseMagicItemSheetFromFile(
+      buffer,
+      mimetype,
+    );
+
+    const createdSheet = await this.magicItemSheetModel.create(parsedSheet);
 
     return createdSheet;
   }

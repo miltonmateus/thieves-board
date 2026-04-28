@@ -10,13 +10,19 @@ import {
   CharacterSheet,
   CharacterSheetSchema,
 } from './schemas/character-sheet.mongo';
+import {
+  MagicItemSheet,
+  MagicItemSheetSchema,
+} from './schemas/magic-item-sheet.mongo';
 import { PdfImageConverterService } from './services/pdf-image-converter.service';
 import { PdfOcrService } from './services/pdf-ocr.service';
+import { MagicItemSheetParser } from './parsers/magic-item-sheets/magic-item-sheet.parser';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: CharacterSheet.name, schema: CharacterSheetSchema },
+      { name: MagicItemSheet.name, schema: MagicItemSheetSchema },
     ]),
   ],
   controllers: [SheetsController],
@@ -24,6 +30,7 @@ import { PdfOcrService } from './services/pdf-ocr.service';
     SheetsService,
     CharacterSheetParser,
     T13CharacterSheetParser,
+    MagicItemSheetParser,
     CharacterSheetTypeDetector,
     PdfTextExtractorService,
     PdfOcrService,

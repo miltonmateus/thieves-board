@@ -69,6 +69,23 @@ export class SheetsController {
     return this.sheetsService.previewCharacterSheetFromFile(buffer, mimetype);
   }
 
+  @Post('preview-magic-item-file')
+  async previewMagicItemFile(@Req() request: FastifyRequest) {
+    const { buffer, mimetype } = await this.readSupportedFile(request);
+
+    return this.sheetsService.previewMagicItemSheetFromFile(buffer, mimetype);
+  }
+
+  @Post('upload-magic-item-file')
+  async uploadMagicItemFile(@Req() request: FastifyRequest) {
+    const { buffer, mimetype } = await this.readSupportedFile(request);
+
+    return this.sheetsService.parseAndSaveMagicItemSheetFromFile(
+      buffer,
+      mimetype,
+    );
+  }
+
   @Get()
   async findAll() {
     return this.sheetsService.findAll();
