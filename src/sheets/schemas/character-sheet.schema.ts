@@ -1,6 +1,16 @@
 import { z } from 'zod';
 
-const optionalTextSchema = z.string().trim().min(1).optional();
+const optionalTextSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .transform((value) =>
+    value
+      .replace(/\s*\r?\n\s*/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim(),
+  )
+  .optional();
 
 const stringListSchema = z.array(z.string().trim().min(1));
 

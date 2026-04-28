@@ -18,6 +18,8 @@ export const CHARACTER_SHEET_PATTERNS = {
   cm: /CM:\s*(.*?)(?:\n|$)/i,
 
   inventarioSection: /Inventário([\s\S]*?)MARCAS PESSOAIS/i,
+  inventarioMarcasPessoaisSection:
+    /Inventário\s+MARCAS PESSOAIS([\s\S]*?)(?:Ficha de Personagem\s+Anotações:|Anotações:|$)/i,
   marcasPessoaisSection:
     /MARCAS PESSOAIS([\s\S]*?)(?:Ficha de Personagem\s+Anotações:|Anotações:|$)/i,
 

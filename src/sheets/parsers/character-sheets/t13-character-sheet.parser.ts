@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CHARACTER_SHEET_DEFAULTS,
   CHARACTER_SHEET_PATTERNS,
-} from '../maps/character-sheet.map';
+} from '../../maps/character-sheets/t13-character-sheet.map';
 import {
   characterSheetSchema,
   type CharacterSheet,
-} from '../schemas/character-sheet.schema';
+} from '../../schemas/character-sheet.schema';
 
 @Injectable()
-export class CharacterSheetParser {
+export class T13CharacterSheetParser {
   parse(text: string): CharacterSheet {
     const normalizedText = this.normalizeText(text);
 
@@ -67,15 +67,23 @@ export class CharacterSheetParser {
       normalizedText,
       CHARACTER_SHEET_PATTERNS.inventarioSection,
     );
+    const rawInventoryAndPersonalMarksSection = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.inventarioMarcasPessoaisSection,
+    );
     const rawMarcasPessoaisSection = this.extractSingleValue(
       normalizedText,
       CHARACTER_SHEET_PATTERNS.marcasPessoaisSection,
     );
+    const splitInventoryAndPersonalMarks =
+      this.toInventoryAndPersonalMarksLists(
+        rawInventoryAndPersonalMarksSection,
+      );
 
     const parsedData: CharacterSheet = {
       nome: this.toOptionalString(rawNome),
       jogador: this.toOptionalString(rawJogador),
-      dataCriacao: this.toOptionalString(rawDataCriacao),
+      dataCriacao: this.toOptionalDateString(rawDataCriacao),
       aparencia: this.toOptionalString(rawAparencia),
       cenario: this.toOptionalString(rawCenario),
       historia: this.toOptionalString(rawHistoria),
@@ -92,17 +100,25 @@ export class CharacterSheetParser {
       pp: this.toNullableNumber(rawPp),
       ppParaGastar: this.toNullableNumber(rawPpParaGastar),
 
-      inventario: this.toStringList(rawInventarioSection) ?? [
-        ...CHARACTER_SHEET_DEFAULTS.inventario,
-      ],
-      marcasPessoais: this.toStringList(rawMarcasPessoaisSection) ?? [
-        ...CHARACTER_SHEET_DEFAULTS.marcasPessoais,
-      ],
+      inventario: this.toStringList(rawInventarioSection) ??
+        splitInventoryAndPersonalMarks?.inventario ?? [
+          ...CHARACTER_SHEET_DEFAULTS.inventario,
+        ],
+      marcasPessoais: splitInventoryAndPersonalMarks?.marcasPessoais ??
+        this.toStringList(rawMarcasPessoaisSection) ?? [
+          ...CHARACTER_SHEET_DEFAULTS.marcasPessoais,
+        ],
 
       anotacoes: this.toOptionalString(rawAnotacoes),
     };
 
-    return characterSheetSchema.parse(parsedData);
+    const result = characterSheetSchema.safeParse(parsedData);
+
+    if (!result.success) {
+      throw new BadRequestException(result.error.issues);
+    }
+
+    return result.data;
   }
 
   private extractSingleValue(
@@ -136,15 +152,34 @@ export class CharacterSheetParser {
       .replace(/\[\s*PP\s*\]/gi, '')
       .replace(/\[\s*ND\s*\]/gi, '')
       .replace(/[ \t]+/g, ' ')
-      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]*\n[ \t]*/g, '\n')
+      .replace(/\n{2,}/g, '\n')
       .replace(/~\s*\d+\s+of\s+\d+\s*~/gi, '')
       .trim();
   }
 
   private toOptionalString(value?: string): string | undefined {
-    const cleanedValue = this.cleanText(value);
+    const cleanedValue = this.cleanFreeText(value);
 
     if (!cleanedValue) {
+      return undefined;
+    }
+
+    return cleanedValue;
+  }
+
+  private cleanFreeText(value?: string): string {
+    return this.cleanText(value)
+      .replace(/\s*\n\s*/g, ' ')
+      .replace(/\bT13\b\s*/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  private toOptionalDateString(value?: string): string | undefined {
+    const cleanedValue = this.cleanText(value).replace(/\s*\/\s*/g, '/');
+
+    if (!cleanedValue || cleanedValue === '//') {
       return undefined;
     }
 
@@ -186,5 +221,92 @@ export class CharacterSheetParser {
     }
 
     return lines;
+  }
+
+  private toInventoryAndPersonalMarksLists(
+    section?: string,
+  ): { inventario: string[]; marcasPessoais: string[] } | undefined {
+    const lines = this.toStringList(section);
+
+    if (!lines) {
+      return undefined;
+    }
+
+    const inventario: string[] = [];
+    const marcasPessoais: string[] = [];
+
+    for (const line of lines) {
+      const splitLine = this.splitInventoryAndPersonalMarkLine(line);
+
+      if (!splitLine) {
+        continue;
+      }
+
+      if (splitLine.inventoryItem) {
+        inventario.push(splitLine.inventoryItem);
+      }
+
+      if (splitLine.personalMark) {
+        marcasPessoais.push(splitLine.personalMark);
+      }
+    }
+
+    if (inventario.length === 0 && marcasPessoais.length === 0) {
+      return undefined;
+    }
+
+    return {
+      inventario,
+      marcasPessoais,
+    };
+  }
+
+  private splitInventoryAndPersonalMarkLine(
+    line: string,
+  ): { inventoryItem?: string; personalMark?: string } | undefined {
+    const cleanedLine = this.cleanListLine(line);
+
+    if (!cleanedLine || this.isNoiseLine(cleanedLine)) {
+      return undefined;
+    }
+
+    const separatorMatch = cleanedLine.match(
+      /\s(?:\|\||—|-|\b[Oo0]\b|\b7\b)\s/,
+    );
+
+    if (!separatorMatch || separatorMatch.index === undefined) {
+      return {
+        inventoryItem: cleanedLine,
+      };
+    }
+
+    const inventoryItem = this.cleanListLine(
+      cleanedLine.slice(0, separatorMatch.index),
+    );
+    const personalMark = this.cleanListLine(
+      cleanedLine.slice(separatorMatch.index + separatorMatch[0].length),
+    );
+
+    return {
+      inventoryItem: inventoryItem || undefined,
+      personalMark: personalMark || undefined,
+    };
+  }
+
+  private cleanListLine(line: string): string {
+    return line
+      .replace(/^[=*"'“”\s-]+/, '')
+      .replace(/^(?:[oO0]\s+)+/, '')
+      .replace(/[|=_<>]+/g, ' ')
+      .replace(/—{2,}/g, ' ')
+      .replace(/\s+ok»?$/i, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  private isNoiseLine(line: string): boolean {
+    return (
+      line.length < 4 || /^[\W\d]+$/.test(line) || /^(rmDD1|tu\))$/i.test(line)
+    );
   }
 }

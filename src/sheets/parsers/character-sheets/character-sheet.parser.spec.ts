@@ -1,4 +1,4 @@
-import { T13CharacterSheetParser } from './character-sheets/t13-character-sheet.parser';
+import { T13CharacterSheetParser } from './t13-character-sheet.parser';
 
 describe('T13CharacterSheetParser', () => {
   it('should parse character sheet text correctly', () => {

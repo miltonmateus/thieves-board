@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
-import { CharacterSheetParser } from '../parsers/character-sheet.parser';
+import { CharacterSheetParser } from '../parsers/character-sheets/character-sheet.parser';
 import {
   CharacterSheet,
   CharacterSheetDocument,
@@ -38,12 +38,22 @@ export class SheetsService {
 
     let extractedText = '';
 
-    if (mimetype === 'application/pdf') {
-      extractedText = await this.pdfTextExtractorService.extractText(buffer);
-    }
+    try {
+      if (mimetype === 'application/pdf') {
+        extractedText = await this.pdfTextExtractorService.extractText(buffer);
+      }
 
-    if (mimetype.startsWith('image/')) {
-      extractedText = await this.pdfOcrService.extractFromImage(buffer);
+      if (mimetype.startsWith('image/')) {
+        extractedText = await this.pdfOcrService.extractFromImage(buffer);
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new BadRequestException(
+        'Não foi possível processar o arquivo enviado.',
+      );
     }
 
     if (!extractedText.trim()) {

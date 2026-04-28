@@ -7,17 +7,19 @@ export class PdfTextExtractorService {
   constructor(private readonly ocrService: PdfOcrService) {}
 
   async extractText(buffer: Buffer): Promise<string> {
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
+    try {
+      const parser = new PDFParse({ data: buffer });
+      const result = await parser.getText();
 
-    const text = result.text?.trim() ?? '';
+      const text = result.text?.trim() ?? '';
 
-    // regra principal
-    if (text.length > 50) {
-      return text;
+      if (text.length > 50) {
+        return text;
+      }
+    } catch {
+      // PDFs escaneados ou malformados ainda podem ser lidos via OCR.
     }
 
-    // fallback OCR
     return this.ocrService.extract(buffer);
   }
 }

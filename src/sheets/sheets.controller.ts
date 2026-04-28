@@ -57,6 +57,11 @@ export class SheetsController {
     );
   }
 
+  @Post('upload-character-pdf')
+  async uploadCharacterPdf(@Req() request: FastifyRequest) {
+    return this.uploadCharacterFile(request);
+  }
+
   @Post('preview-character-file')
   async previewCharacterFile(@Req() request: FastifyRequest) {
     const { buffer, mimetype } = await this.readSupportedFile(request);
