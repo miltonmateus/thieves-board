@@ -1,6 +1,10 @@
-import { DiceDefinition } from '../schemas/dice-definition.schema';
+import { z } from 'zod';
+import {
+  diceDefinitionSchema,
+  type DiceDefinition,
+} from '../schemas/dice-definition.schema';
 
-export const diceCatalog: DiceDefinition[] = [
+const rawDiceCatalog: DiceDefinition[] = [
   {
     id: 'd2',
     label: 'D2',
@@ -71,6 +75,8 @@ export const diceCatalog: DiceDefinition[] = [
     canSum: false,
   },
 ];
+
+export const diceCatalog = z.array(diceDefinitionSchema).parse(rawDiceCatalog);
 
 export function findDiceById(id: string): DiceDefinition | undefined {
   return diceCatalog.find((dice) => dice.id === id);

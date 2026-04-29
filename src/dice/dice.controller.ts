@@ -1,12 +1,10 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { DiceService } from './dice.service';
-import { rollDiceSchema } from './schemas/roll-dice.schema';
+import {
+  rollDiceSchema,
+  type RollDiceSchema,
+} from './schemas/roll-dice.schema';
 
 @Controller('dice')
 export class DiceController {
@@ -18,16 +16,7 @@ export class DiceController {
   }
 
   @Post('roll')
-  rollDice(@Body() body: unknown) {
-    const parsedBody = rollDiceSchema.safeParse(body);
-
-    if (!parsedBody.success) {
-      throw new BadRequestException({
-        message: 'Dados inválidos para rolagem',
-        errors: parsedBody.error.flatten().fieldErrors,
-      });
-    }
-
-    return this.diceService.rollDice(parsedBody.data);
+  rollDice(@Body(new ZodValidationPipe(rollDiceSchema)) body: RollDiceSchema) {
+    return this.diceService.rollDice(body);
   }
 }
