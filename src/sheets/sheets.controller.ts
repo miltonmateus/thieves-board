@@ -10,6 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
+import { formatZodValidationError } from '../common/errors/zod-validation-error';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { mongoObjectIdSchema } from '../common/schemas/mongo-object-id.schema';
 import { SheetsService } from './services/sheets.service';
@@ -129,7 +130,7 @@ export class SheetsController {
     });
 
     if (!parsedFile.success) {
-      throw new BadRequestException(parsedFile.error.issues);
+      throw new BadRequestException(formatZodValidationError(parsedFile.error));
     }
 
     return parsedFile.data;

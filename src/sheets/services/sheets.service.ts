@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
+import { formatZodValidationError } from '../../common/errors/zod-validation-error';
 import { CharacterSheetParser } from '../parsers/character-sheets/character-sheet.parser';
 import {
   CharacterSheet,
@@ -181,7 +182,7 @@ export class SheetsService {
     const result = updateCharacterSheetSchema.safeParse(payload);
 
     if (!result.success) {
-      throw new BadRequestException(result.error.issues);
+      throw new BadRequestException(formatZodValidationError(result.error));
     }
 
     const updatedSheet = await this.characterSheetModel

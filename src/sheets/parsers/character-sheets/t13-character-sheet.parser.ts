@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { formatZodValidationError } from '../../../common/errors/zod-validation-error';
 import {
   CHARACTER_SHEET_DEFAULTS,
   CHARACTER_SHEET_PATTERNS,
@@ -115,7 +116,7 @@ export class T13CharacterSheetParser {
     const result = characterSheetSchema.safeParse(parsedData);
 
     if (!result.success) {
-      throw new BadRequestException(result.error.issues);
+      throw new BadRequestException(formatZodValidationError(result.error));
     }
 
     return result.data;

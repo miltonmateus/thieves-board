@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { formatZodValidationError } from '../../../common/errors/zod-validation-error';
 import {
   MAGIC_ITEM_SHEET_LABELS,
   MAGIC_ITEM_SHEET_PATTERNS,
@@ -30,7 +31,7 @@ export class MagicItemSheetParser {
     const result = magicItemSheetSchema.safeParse(parsedData);
 
     if (!result.success) {
-      throw new BadRequestException(result.error.issues);
+      throw new BadRequestException(formatZodValidationError(result.error));
     }
 
     return result.data;
