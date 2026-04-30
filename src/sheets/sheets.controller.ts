@@ -1,27 +1,30 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Req,
-  Body,
-  Patch,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
+import { formatZodValidationError } from '../common/errors/zod-validation-error';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { mongoObjectIdSchema } from '../common/schemas/mongo-object-id.schema';
 import { SheetsService } from './services/sheets.service';
-import type { UpdateCharacterSheet } from './schemas/character-sheet.schema';
+import {
+  characterSheetSchema,
+  updateCharacterSheetSchema,
+  type CharacterSheet,
+  type UpdateCharacterSheet,
+} from './schemas/character-sheet.schema';
+import { uploadedSheetFileSchema } from './schemas/uploaded-sheet-file.schema';
 
 @Controller('sheets')
 export class SheetsController {
   constructor(private readonly sheetsService: SheetsService) {}
-
-  private readonly supportedFileTypes = [
-    'application/pdf',
-    'image/jpeg',
-    'image/png',
-  ];
 
   @Get('test-character')
   testCharacter() {
@@ -86,18 +89,35 @@ export class SheetsController {
     );
   }
 
+  @Get('templates/t13/new-sheet')
+  createNewT13CharacterSheet() {
+    return this.sheetsService.createNewT13CharacterSheet();
+  }
+
+  @Post()
+  async create(
+    @Body(new ZodValidationPipe(characterSheetSchema))
+    body: CharacterSheet,
+  ) {
+    return this.sheetsService.create(body);
+  }
+
   @Get()
   async findAll() {
     return this.sheetsService.findAll();
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  async findById(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+  ) {
     return this.sheetsService.findById(id);
   }
 
   @Delete(':id')
-  async removeById(@Param('id') id: string) {
+  async removeById(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+  ) {
     return this.sheetsService.removeById(id);
   }
 
@@ -118,23 +138,24 @@ export class SheetsController {
       throw new BadRequestException('Nenhum arquivo foi enviado.');
     }
 
-    if (!this.supportedFileTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'O arquivo enviado precisa ser um PDF, JPG ou PNG.',
-      );
-    }
-
-    return {
+    const parsedFile = uploadedSheetFileSchema.safeParse({
       buffer: await this.streamToBuffer(file.file),
       filename: file.filename,
       mimetype: file.mimetype,
-    };
+    });
+
+    if (!parsedFile.success) {
+      throw new BadRequestException(formatZodValidationError(parsedFile.error));
+    }
+
+    return parsedFile.data;
   }
 
   @Patch(':id')
   async updateById(
-    @Param('id') id: string,
-    @Body() body: UpdateCharacterSheet,
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+    @Body(new ZodValidationPipe(updateCharacterSheetSchema))
+    body: UpdateCharacterSheet,
   ) {
     return this.sheetsService.updateById(id, body);
   }
