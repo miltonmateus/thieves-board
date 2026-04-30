@@ -8,7 +8,7 @@ import { isValidObjectId, Model } from 'mongoose';
 import { formatZodValidationError } from '../../common/errors/zod-validation-error';
 import { CharacterSheetParser } from '../parsers/character-sheets/character-sheet.parser';
 import {
-  CharacterSheet,
+  CharacterSheet as CharacterSheetModel,
   CharacterSheetDocument,
 } from '../schemas/character-sheet.mongo';
 import {
@@ -17,16 +17,19 @@ import {
 } from '../schemas/magic-item-sheet.mongo';
 import { PdfTextExtractorService } from './pdf-text-extractor.service';
 import {
+  characterSheetSchema,
   updateCharacterSheetSchema,
+  type CharacterSheet,
   type UpdateCharacterSheet,
 } from '../schemas/character-sheet.schema';
 import { PdfOcrService } from './pdf-ocr.service';
 import { MagicItemSheetParser } from '../parsers/magic-item-sheets/magic-item-sheet.parser';
+import { createNewT13CharacterSheet } from '../pdf-document-service/systems/T13/templates/new-sheet.template';
 
 @Injectable()
 export class SheetsService {
   constructor(
-    @InjectModel(CharacterSheet.name)
+    @InjectModel(CharacterSheetModel.name)
     private readonly characterSheetModel: Model<CharacterSheetDocument>,
     @InjectModel(MagicItemSheet.name)
     private readonly magicItemSheetModel: Model<MagicItemSheetDocument>,
@@ -36,8 +39,22 @@ export class SheetsService {
     private readonly pdfOcrService: PdfOcrService,
   ) {}
 
+  async create(payload: CharacterSheet) {
+    const result = characterSheetSchema.safeParse(payload);
+
+    if (!result.success) {
+      throw new BadRequestException(formatZodValidationError(result.error));
+    }
+
+    return this.characterSheetModel.create(result.data);
+  }
+
   parseCharacterSheetFromText(text: string) {
     return this.characterSheetParser.parse(text);
+  }
+
+  createNewT13CharacterSheet(): CharacterSheet {
+    return createNewT13CharacterSheet();
   }
 
   parseMagicItemSheetFromText(text: string) {

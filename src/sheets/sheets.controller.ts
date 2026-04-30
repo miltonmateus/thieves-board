@@ -15,7 +15,9 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { mongoObjectIdSchema } from '../common/schemas/mongo-object-id.schema';
 import { SheetsService } from './services/sheets.service';
 import {
+  characterSheetSchema,
   updateCharacterSheetSchema,
+  type CharacterSheet,
   type UpdateCharacterSheet,
 } from './schemas/character-sheet.schema';
 import { uploadedSheetFileSchema } from './schemas/uploaded-sheet-file.schema';
@@ -87,10 +89,24 @@ export class SheetsController {
     );
   }
 
+  @Get('templates/t13/new-sheet')
+  createNewT13CharacterSheet() {
+    return this.sheetsService.createNewT13CharacterSheet();
+  }
+
+  @Post()
+  async create(
+    @Body(new ZodValidationPipe(characterSheetSchema))
+    body: CharacterSheet,
+  ) {
+    return this.sheetsService.create(body);
+  }
+
   @Get()
   async findAll() {
     return this.sheetsService.findAll();
   }
+
 
   @Get(':id')
   async findById(
