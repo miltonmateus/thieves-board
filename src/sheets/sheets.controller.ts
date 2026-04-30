@@ -107,7 +107,6 @@ export class SheetsController {
     return this.sheetsService.findAll();
   }
 
-
   @Get(':id')
   async findById(
     @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
