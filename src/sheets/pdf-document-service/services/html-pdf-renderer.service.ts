@@ -8,7 +8,7 @@ export type HtmlPdfRenderOptions = {
 
 @Injectable()
 export class HtmlPdfRendererService {
-  async render(html: string, options: HtmlPdfRenderOptions = {}): Promise<Buffer> {
+  render(html: string, options: HtmlPdfRenderOptions = {}): Promise<Buffer> {
     void html;
     void options;
 

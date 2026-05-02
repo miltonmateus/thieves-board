@@ -6,7 +6,9 @@ type AttributeWithMagnitude = CharacterSheet['atributos']['fo'];
 
 const empty = '-';
 
-export function createT13CharacterSheetHtmlTemplate(data: CharacterSheet): string {
+export function createT13CharacterSheetHtmlTemplate(
+  data: CharacterSheet,
+): string {
   const sheet = withCharacterSheetDefaults(data);
 
   return `<!doctype html>
@@ -351,7 +353,15 @@ function toText(rawValue: unknown): string {
     return empty;
   }
 
-  return String(rawValue).trim();
+  if (typeof rawValue === 'string') {
+    return rawValue.trim();
+  }
+
+  if (typeof rawValue === 'number' || typeof rawValue === 'boolean') {
+    return String(rawValue).trim();
+  }
+
+  return empty;
 }
 
 function escapeHtml(valueToEscape: string): string {
