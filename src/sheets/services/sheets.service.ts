@@ -25,6 +25,15 @@ import {
 import { PdfOcrService } from './pdf-ocr.service';
 import { MagicItemSheetParser } from '../parsers/magic-item-sheets/magic-item-sheet.parser';
 import { createNewT13CharacterSheet } from '../pdf-document-service/systems/T13/templates/new-sheet.template';
+import { createNewT13MagicItemSheet } from '../pdf-document-service/systems/T13/templates/new-magic-item-sheet.template';
+import {
+  magicItemSheetSchema,
+  type MagicItemSheet as MagicItemSheetData,
+  updateMagicItemSheetSchema,
+  type UpdateMagicItemSheet,
+} from '../schemas/magic-item-sheet.schema';
+import { CharacterSheetHtmlService } from '../pdf-document-service/services/character-sheet-html.service';
+import { HtmlPdfRendererService } from '../pdf-document-service/services/html-pdf-renderer.service';
 
 @Injectable()
 export class SheetsService {
@@ -37,6 +46,8 @@ export class SheetsService {
     private readonly magicItemSheetParser: MagicItemSheetParser,
     private readonly pdfTextExtractorService: PdfTextExtractorService,
     private readonly pdfOcrService: PdfOcrService,
+    private readonly characterSheetHtmlService: CharacterSheetHtmlService,
+    private readonly htmlPdfRendererService: HtmlPdfRendererService,
   ) {}
 
   async create(payload: CharacterSheet) {
@@ -49,12 +60,173 @@ export class SheetsService {
     return this.characterSheetModel.create(result.data);
   }
 
+  async createMagicItem(payload: MagicItemSheetData) {
+    const result = magicItemSheetSchema.safeParse(payload);
+
+    if (!result.success) {
+      throw new BadRequestException(formatZodValidationError(result.error));
+    }
+
+    return this.magicItemSheetModel.create(result.data);
+  }
+
+  async findAllMagicItems() {
+    return this.magicItemSheetModel.find().lean();
+  }
+
+  async findMagicItemById(id: string) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID inválido.');
+    }
+
+    const magicItem = await this.magicItemSheetModel.findById(id).lean();
+
+    if (!magicItem) {
+      throw new NotFoundException('Ficha de item mágico não encontrada.');
+    }
+
+    return magicItem;
+  }
+
+  async updateMagicItemById(id: string, payload: UpdateMagicItemSheet) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID inválido.');
+    }
+
+    if (!payload) {
+      throw new BadRequestException('Body da requisição é obrigatório.');
+    }
+
+    const result = updateMagicItemSheetSchema.safeParse(payload);
+
+    if (!result.success) {
+      throw new BadRequestException(formatZodValidationError(result.error));
+    }
+
+    const updatedMagicItem = await this.magicItemSheetModel
+      .findByIdAndUpdate(id, result.data, {
+        returnDocument: 'after',
+        runValidators: true,
+      })
+      .lean();
+
+    if (!updatedMagicItem) {
+      throw new NotFoundException('Ficha de item mágico não encontrada.');
+    }
+
+    return updatedMagicItem;
+  }
+
+  async removeMagicItemById(id: string) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID inválido.');
+    }
+
+    const deletedMagicItem = await this.magicItemSheetModel
+      .findByIdAndDelete(id)
+      .lean();
+
+    if (!deletedMagicItem) {
+      throw new NotFoundException('Ficha de item mágico não encontrada.');
+    }
+
+    await this.characterSheetModel.updateMany(
+      { 'inventario.fichaItemMagicoId': id },
+      {
+        $pull: {
+          inventario: {
+            fichaItemMagicoId: id,
+          },
+        },
+      },
+    );
+
+    return {
+      message: 'Ficha de item mágico removida com sucesso.',
+      deletedId: id,
+    };
+  }
+
+  async attachMagicItemToCharacterSheet(id: string, magicItemId: string) {
+    if (!isValidObjectId(id) || !isValidObjectId(magicItemId)) {
+      throw new BadRequestException('ID inválido.');
+    }
+
+    const magicItem = await this.magicItemSheetModel
+      .findById(magicItemId)
+      .lean();
+
+    if (!magicItem) {
+      throw new NotFoundException('Ficha de item mágico não encontrada.');
+    }
+
+    const updatedSheet = await this.characterSheetModel
+      .findByIdAndUpdate(
+        id,
+        {
+          $push: {
+            inventario: {
+              nome: magicItem.nome,
+              valor: null,
+              peso: this.parseWeightInKg(magicItem.peso),
+              tipo: 'item-magico',
+              fichaItemMagicoId: magicItemId,
+            },
+          },
+        },
+        {
+          returnDocument: 'after',
+          runValidators: true,
+        },
+      )
+      .lean();
+
+    if (!updatedSheet) {
+      throw new NotFoundException('Ficha não encontrada.');
+    }
+
+    return updatedSheet;
+  }
+
+  async detachMagicItemFromCharacterSheet(id: string, magicItemId: string) {
+    if (!isValidObjectId(id) || !isValidObjectId(magicItemId)) {
+      throw new BadRequestException('ID inválido.');
+    }
+
+    const updatedSheet = await this.characterSheetModel
+      .findByIdAndUpdate(
+        id,
+        {
+          $pull: {
+            inventario: {
+              fichaItemMagicoId: magicItemId,
+            },
+          },
+        },
+        {
+          returnDocument: 'after',
+          runValidators: true,
+        },
+      )
+      .lean();
+
+    if (!updatedSheet) {
+      throw new NotFoundException('Ficha não encontrada.');
+    }
+
+    return updatedSheet;
+  }
+
   parseCharacterSheetFromText(text: string) {
     return this.characterSheetParser.parse(text);
   }
 
   createNewT13CharacterSheet(): CharacterSheet {
     return createNewT13CharacterSheet();
+  }
+
+  createNewT13MagicItemSheet(): MagicItemSheetData {
+    return createNewT13MagicItemSheet();
   }
 
   parseMagicItemSheetFromText(text: string) {
@@ -168,6 +340,27 @@ export class SheetsService {
     return sheet;
   }
 
+  async generateCharacterPdfById(id: string) {
+    return this.generateCharacterPdfFromHtmlById(id);
+  }
+
+  async generateCharacterSheetHtmlById(id: string) {
+    const sheet = await this.findById(id);
+
+    return this.characterSheetHtmlService.createCharacterSheetHtml(
+      sheet as CharacterSheet,
+    );
+  }
+
+  async generateCharacterPdfFromHtmlById(id: string) {
+    const html = await this.generateCharacterSheetHtmlById(id);
+
+    return this.htmlPdfRendererService.render(html, {
+      format: 'A4',
+      printBackground: true,
+    });
+  }
+
   async removeById(id: string) {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('ID inválido.');
@@ -214,5 +407,17 @@ export class SheetsService {
     }
 
     return updatedSheet;
+  }
+
+  private parseWeightInKg(value: string): number | null {
+    const match = value.match(/(\d+(?:[,.]\d+)?)/);
+
+    if (!match) {
+      return null;
+    }
+
+    const parsedWeight = Number(match[1].replace(',', '.'));
+
+    return Number.isNaN(parsedWeight) ? null : parsedWeight;
   }
 }

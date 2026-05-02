@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { formatZodValidationError } from '../../../common/errors/zod-validation-error';
+import { MagicItemSheetTypeDetector } from '../../detectors/magic-item-sheets/magic-item-sheet-type.detector';
+import { MagicItemSheetSource } from '../../enums/magic-item-sheets/magic-item-sheet-source.enum';
 import {
   MAGIC_ITEM_SHEET_LABELS,
   MAGIC_ITEM_SHEET_PATTERNS,
@@ -11,7 +13,19 @@ import {
 
 @Injectable()
 export class MagicItemSheetParser {
+  constructor(
+    private readonly magicItemSheetTypeDetector: MagicItemSheetTypeDetector,
+  ) {}
+
   parse(text: string): MagicItemSheet {
+    const source = this.magicItemSheetTypeDetector.detect(text);
+
+    if (source !== MagicItemSheetSource.T13) {
+      throw new BadRequestException(
+        'Não foi possível identificar o tipo da ficha de item mágico enviada.',
+      );
+    }
+
     const normalizedText = this.normalizeText(text);
     const lines = this.toLines(normalizedText);
 

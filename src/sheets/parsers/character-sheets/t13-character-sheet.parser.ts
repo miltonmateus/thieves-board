@@ -42,6 +42,14 @@ export class T13CharacterSheetParser {
       normalizedText,
       CHARACTER_SHEET_PATTERNS.cenario,
     );
+    const rawNcd = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.ncd,
+    );
+    const rawNct = this.extractSingleValue(
+      normalizedText,
+      CHARACTER_SHEET_PATTERNS.nct,
+    );
     const rawHistoria = this.extractSingleValue(
       normalizedText,
       CHARACTER_SHEET_PATTERNS.historia,
@@ -49,10 +57,6 @@ export class T13CharacterSheetParser {
     const rawAltura = this.extractSingleValue(
       normalizedText,
       CHARACTER_SHEET_PATTERNS.altura,
-    );
-    const rawPeso = this.extractSingleValue(
-      normalizedText,
-      CHARACTER_SHEET_PATTERNS.peso,
     );
     const rawCm = this.extractSingleValue(
       normalizedText,
@@ -82,33 +86,44 @@ export class T13CharacterSheetParser {
       );
 
     const parsedData: CharacterSheet = {
+      sistema: 't13',
+
       nome: this.toOptionalString(rawNome),
       jogador: this.toOptionalString(rawJogador),
       dataCriacao: this.toOptionalDateString(rawDataCriacao),
       aparencia: this.toOptionalString(rawAparencia),
       cenario: this.toOptionalString(rawCenario),
+      ncd: this.toNullableNumber(rawNcd),
+      nct: this.toNullableNumber(rawNct),
       historia: this.toOptionalString(rawHistoria),
 
       tamanho: {
-        largura: this.toNullableNumber(rawTamanho?.[1]),
-        altura: this.toNullableNumber(rawTamanho?.[2]),
+        x: this.toNullableNumber(rawTamanho?.[1]),
+        y: this.toNullableNumber(rawTamanho?.[2]),
       },
 
       altura: this.toNullableNumber(rawAltura),
-      peso: this.toNullableNumber(rawPeso),
       cm: this.toNullableNumber(rawCm),
 
       pp: this.toNullableNumber(rawPp),
       ppParaGastar: this.toNullableNumber(rawPpParaGastar),
 
-      inventario: this.toStringList(rawInventarioSection) ??
-        splitInventoryAndPersonalMarks?.inventario ?? [
-          ...CHARACTER_SHEET_DEFAULTS.inventario,
-        ],
+      capacidadesFisicas: this.createDefaultPhysicalCapacities(),
+      atributos: this.createDefaultAttributes(),
+      competencias: this.createDefaultCompetences(),
+      memoriasCanonicas: [...CHARACTER_SHEET_DEFAULTS.memoriasCanonicas],
       marcasPessoais: splitInventoryAndPersonalMarks?.marcasPessoais ??
         this.toStringList(rawMarcasPessoaisSection) ?? [
           ...CHARACTER_SHEET_DEFAULTS.marcasPessoais,
         ],
+      inventario: this.toInventoryItems(rawInventarioSection) ??
+        splitInventoryAndPersonalMarks?.inventario.map((nome) => ({
+          nome,
+          valor: null,
+          peso: null,
+          tipo: 'item-comum' as const,
+          fichaItemMagicoId: null,
+        })) ?? [...CHARACTER_SHEET_DEFAULTS.inventario],
 
       anotacoes: this.toOptionalString(rawAnotacoes),
     };
@@ -224,6 +239,30 @@ export class T13CharacterSheetParser {
     return lines;
   }
 
+  private toInventoryItems(section?: string):
+    | Array<{
+        nome?: string;
+        valor: number | null;
+        peso: number | null;
+        tipo: 'item-comum';
+        fichaItemMagicoId: null;
+      }>
+    | undefined {
+    const lines = this.toStringList(section);
+
+    if (!lines) {
+      return undefined;
+    }
+
+    return lines.map((nome) => ({
+      nome,
+      valor: null,
+      peso: null,
+      tipo: 'item-comum',
+      fichaItemMagicoId: null,
+    }));
+  }
+
   private toInventoryAndPersonalMarksLists(
     section?: string,
   ): { inventario: string[]; marcasPessoais: string[] } | undefined {
@@ -259,6 +298,43 @@ export class T13CharacterSheetParser {
     return {
       inventario,
       marcasPessoais,
+    };
+  }
+
+  private createDefaultPhysicalCapacities(): CharacterSheet['capacidadesFisicas'] {
+    return {
+      pv: { maximo: null, metade: null, atual: null },
+      pf: { maximo: null, metade: null, atual: null },
+      ex: { maximo: null, metade: null, atual: null },
+      velocidadeBase: null,
+      velocidadeCorrida: null,
+      reflexo: null,
+      baseCarga: null,
+      fatorCarga: null,
+      defesas: [],
+    };
+  }
+
+  private createDefaultAttributes(): CharacterSheet['atributos'] {
+    return {
+      fo: { base: null, atual: null, comCm: null },
+      de: { base: null, atual: null },
+      it: { base: null, atual: null },
+      co: { base: null, atual: null, comCm: null },
+    };
+  }
+
+  private createDefaultCompetences(): CharacterSheet['competencias'] {
+    return {
+      linguistica: null,
+      logica: null,
+      espacial: null,
+      cinestesica: null,
+      interpessoal: null,
+      intrapessoal: null,
+      naturalista: null,
+      musical: null,
+      exotica: null,
     };
   }
 

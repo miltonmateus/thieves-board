@@ -17,6 +17,9 @@ import {
 import { PdfImageConverterService } from './services/pdf-image-converter.service';
 import { PdfOcrService } from './services/pdf-ocr.service';
 import { MagicItemSheetParser } from './parsers/magic-item-sheets/magic-item-sheet.parser';
+import { MagicItemSheetTypeDetector } from './detectors/magic-item-sheets/magic-item-sheet-type.detector';
+import { CharacterSheetHtmlService } from './pdf-document-service/services/character-sheet-html.service';
+import { HtmlPdfRendererService } from './pdf-document-service/services/html-pdf-renderer.service';
 
 @Module({
   imports: [
@@ -32,9 +35,12 @@ import { MagicItemSheetParser } from './parsers/magic-item-sheets/magic-item-she
     T13CharacterSheetParser,
     MagicItemSheetParser,
     CharacterSheetTypeDetector,
+    MagicItemSheetTypeDetector,
     PdfTextExtractorService,
     PdfOcrService,
     PdfImageConverterService,
+    CharacterSheetHtmlService,
+    HtmlPdfRendererService,
   ],
 })
 export class SheetsModule {}

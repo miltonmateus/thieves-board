@@ -7,13 +7,14 @@ export const CHARACTER_SHEET_PATTERNS = {
   ppParaGastar: /PP p\/ gastar:\s*(.*?)(?:\n|$)/i,
 
   aparencia: /Aparência:\s*(.*?)\s+Cenário:/i,
-  cenario: /Cenário:\s*(.*?)(?:\n|$)/i,
+  cenario: /Cenário:\s*(.*?)(?:\s+NCD:|\n|$)/i,
+  ncd: /NCD:\s*(.*?)\s+NCT:/i,
+  nct: /NCT:\s*(.*?)(?:\n|$)/i,
 
   historia: /História:\s*([\s\S]*?)\s*Tamanho:/i,
 
   tamanho: /Tamanho:\s*(.*?)\s*x\s*(.*?)\s+Altura:/i,
-  altura: /Altura:\s*(.*?)\s+Peso:/i,
-  peso: /Peso:\s*(.*?)(?:\n|$)/i,
+  altura: /Altura:\s*(.*?)(?:\s+Peso:|\s+CM:|\n|$)/i,
 
   cm: /CM:\s*(.*?)(?:\n|$)/i,
 
@@ -27,6 +28,41 @@ export const CHARACTER_SHEET_PATTERNS = {
 } as const;
 
 export const CHARACTER_SHEET_DEFAULTS = {
-  inventario: [] as string[],
+  capacidadesFisicas: {
+    pv: { maximo: null, metade: null, atual: null },
+    pf: { maximo: null, metade: null, atual: null },
+    ex: { maximo: null, metade: null, atual: null },
+    velocidadeBase: null,
+    velocidadeCorrida: null,
+    reflexo: null,
+    baseCarga: null,
+    fatorCarga: null,
+    defesas: [],
+  },
+  atributos: {
+    fo: { base: null, atual: null, comCm: null },
+    de: { base: null, atual: null },
+    it: { base: null, atual: null },
+    co: { base: null, atual: null, comCm: null },
+  },
+  competencias: {
+    linguistica: null,
+    logica: null,
+    espacial: null,
+    cinestesica: null,
+    interpessoal: null,
+    intrapessoal: null,
+    naturalista: null,
+    musical: null,
+    exotica: null,
+  },
+  memoriasCanonicas: [] as string[],
+  inventario: [] as Array<{
+    nome?: string;
+    valor: number | null;
+    peso: number | null;
+    tipo: 'item-comum' | 'item-magico';
+    fichaItemMagicoId?: string | null;
+  }>,
   marcasPessoais: [] as string[],
 } as const;

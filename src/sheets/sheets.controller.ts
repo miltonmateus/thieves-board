@@ -8,8 +8,9 @@ import {
   Patch,
   Post,
   Req,
+  Res,
 } from '@nestjs/common';
-import type { FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { formatZodValidationError } from '../common/errors/zod-validation-error';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { mongoObjectIdSchema } from '../common/schemas/mongo-object-id.schema';
@@ -20,6 +21,12 @@ import {
   type CharacterSheet,
   type UpdateCharacterSheet,
 } from './schemas/character-sheet.schema';
+import {
+  magicItemSheetSchema,
+  type MagicItemSheet,
+  updateMagicItemSheetSchema,
+  type UpdateMagicItemSheet,
+} from './schemas/magic-item-sheet.schema';
 import { uploadedSheetFileSchema } from './schemas/uploaded-sheet-file.schema';
 
 @Controller('sheets')
@@ -89,9 +96,71 @@ export class SheetsController {
     );
   }
 
+  @Post('magic-items')
+  async createMagicItem(
+    @Body(new ZodValidationPipe(magicItemSheetSchema))
+    body: MagicItemSheet,
+  ) {
+    return this.sheetsService.createMagicItem(body);
+  }
+
+  @Get('magic-items')
+  async findAllMagicItems() {
+    return this.sheetsService.findAllMagicItems();
+  }
+
+  @Get('magic-items/:id')
+  async findMagicItemById(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+  ) {
+    return this.sheetsService.findMagicItemById(id);
+  }
+
+  @Patch('magic-items/:id')
+  async updateMagicItemById(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+    @Body(new ZodValidationPipe(updateMagicItemSheetSchema))
+    body: UpdateMagicItemSheet,
+  ) {
+    return this.sheetsService.updateMagicItemById(id, body);
+  }
+
+  @Delete('magic-items/:id')
+  async removeMagicItemById(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+  ) {
+    return this.sheetsService.removeMagicItemById(id);
+  }
+
+  @Post(':id/inventory/magic-items/:magicItemId')
+  async attachMagicItemToCharacterSheet(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+    @Param('magicItemId', new ZodValidationPipe(mongoObjectIdSchema))
+    magicItemId: string,
+  ) {
+    return this.sheetsService.attachMagicItemToCharacterSheet(id, magicItemId);
+  }
+
+  @Delete(':id/inventory/magic-items/:magicItemId')
+  async detachMagicItemFromCharacterSheet(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+    @Param('magicItemId', new ZodValidationPipe(mongoObjectIdSchema))
+    magicItemId: string,
+  ) {
+    return this.sheetsService.detachMagicItemFromCharacterSheet(
+      id,
+      magicItemId,
+    );
+  }
+
   @Get('templates/t13/new-sheet')
   createNewT13CharacterSheet() {
     return this.sheetsService.createNewT13CharacterSheet();
+  }
+
+  @Get('templates/t13/new-magic-item-sheet')
+  createNewT13MagicItemSheet() {
+    return this.sheetsService.createNewT13MagicItemSheet();
   }
 
   @Post()
@@ -105,6 +174,32 @@ export class SheetsController {
   @Get()
   async findAll() {
     return this.sheetsService.findAll();
+  }
+
+  @Get(':id/pdf')
+  async exportCharacterPdf(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+    @Res() reply: FastifyReply,
+  ) {
+    const pdfBuffer = await this.sheetsService.generateCharacterPdfById(id);
+
+    return reply
+      .header('Content-Type', 'application/pdf')
+      .header(
+        'Content-Disposition',
+        `attachment; filename="character-${id}.pdf"`,
+      )
+      .send(pdfBuffer);
+  }
+
+  @Get(':id/html')
+  async previewCharacterHtml(
+    @Param('id', new ZodValidationPipe(mongoObjectIdSchema)) id: string,
+    @Res() reply: FastifyReply,
+  ) {
+    const html = await this.sheetsService.generateCharacterSheetHtmlById(id);
+
+    return reply.header('Content-Type', 'text/html; charset=utf-8').send(html);
   }
 
   @Get(':id')

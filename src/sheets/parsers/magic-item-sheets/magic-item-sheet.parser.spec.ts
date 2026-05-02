@@ -1,8 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
+import { MagicItemSheetSource } from '../../enums/magic-item-sheets/magic-item-sheet-source.enum';
 import { MagicItemSheetParser } from './magic-item-sheet.parser';
 
 describe('MagicItemSheetParser', () => {
-  const parser = new MagicItemSheetParser();
+  const magicItemSheetTypeDetector = {
+    detect: jest.fn(() => MagicItemSheetSource.T13),
+  };
+  const parser = new MagicItemSheetParser(magicItemSheetTypeDetector as never);
   const descriptionFields = {
     descricaoAlma:
       'A alma do item parece uma pequena fênix adormecida dentro da lâmina, aquecendo a mão do portador sem queimar.',
@@ -17,6 +21,12 @@ describe('MagicItemSheetParser', () => {
   };
 
   describe('parse', () => {
+    beforeEach(() => {
+      magicItemSheetTypeDetector.detect.mockReturnValue(
+        MagicItemSheetSource.T13,
+      );
+    });
+
     it('should parse the magic item sheet from extracted PDF text', () => {
       const result = parser.parse(`
         Ficha de Item Mágico
@@ -213,6 +223,16 @@ describe('MagicItemSheetParser', () => {
     it('should reject text without the required header fields', () => {
       expect(() => parser.parse('Ficha de Item Mágico')).toThrow(
         BadRequestException,
+      );
+    });
+
+    it('should reject unidentified magic item sheets before parsing fields', () => {
+      magicItemSheetTypeDetector.detect.mockReturnValue(
+        MagicItemSheetSource.Unknown,
+      );
+
+      expect(() => parser.parse('Texto sem formato de ficha')).toThrow(
+        'Não foi possível identificar o tipo da ficha de item mágico enviada.',
       );
     });
   });
