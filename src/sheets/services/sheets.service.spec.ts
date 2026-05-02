@@ -19,6 +19,12 @@ describe('SheetsService', () => {
   const pdfOcrService = {
     extractFromImage: jest.fn(),
   };
+  const characterSheetHtmlService = {
+    createCharacterSheetHtml: jest.fn(),
+  };
+  const htmlPdfRendererService = {
+    render: jest.fn(),
+  };
 
   const service = new SheetsService(
     characterSheetModel as never,
@@ -27,6 +33,8 @@ describe('SheetsService', () => {
     magicItemSheetParser as never,
     pdfTextExtractorService as never,
     pdfOcrService as never,
+    characterSheetHtmlService as never,
+    htmlPdfRendererService as never,
   );
 
   beforeEach(() => {

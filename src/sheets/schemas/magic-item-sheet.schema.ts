@@ -47,3 +47,14 @@ export const magicItemSheetSchema = z
   .strict();
 
 export type MagicItemSheet = z.infer<typeof magicItemSheetSchema>;
+
+export const updateMagicItemSheetSchema = magicItemSheetSchema
+  .partial()
+  .extend({
+    pontosFadiga: fatiguePointsSchema.partial().optional(),
+  })
+  .refine((payload) => Object.keys(payload).length > 0, {
+    message: 'Pelo menos um campo deve ser fornecido para atualização.',
+  });
+
+export type UpdateMagicItemSheet = z.infer<typeof updateMagicItemSheetSchema>;
