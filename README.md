@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🗡️ Thieves Board API
+# Thieves Board API
 
 ![Legenda](./src/assets/Logo.png)
 
@@ -12,7 +12,7 @@ Backend do sistema **Thieves Board**, responsável por gerenciar fichas, quests 
 
 <div align="center">
 
-## 🚀 Tecnologias
+## Tecnologias
 
 </div>
 
@@ -29,11 +29,11 @@ Backend do sistema **Thieves Board**, responsável por gerenciar fichas, quests 
 
 <div align="center">
 
-## 📦 Funcionalidades
+## Funcionalidades
 
 </div>
 
-### 📄 Fichas de Personagem
+### Fichas de Personagem
 
 - Upload de ficha em PDF  
 - Extração automática de dados  
@@ -51,14 +51,14 @@ DELETE /sheets/:id
 
 ---
 
-### 🎲 Sistema de Dados
+### Sistema de Dados
 
 - d2, d4, d6, d8, d10, d12, d20  
 - Rolagem com quantidade (ex: 3d6)
 
 ---
 
-### 📜 Sistema de Quests
+### Sistema de Quests
 
 - Listagem de quests  
 - Seleção de quest ativa  
@@ -68,7 +68,7 @@ DELETE /sheets/:id
 
 <div align="center">
 
-## 🧠 Arquitetura
+## Arquitetura
 
 </div>
 
@@ -89,7 +89,7 @@ src/
 
 <div align="center">
 
-## 🛠️ Instalação
+## Instalação
 
 </div>
 
@@ -99,7 +99,7 @@ pnpm install
 
 <div align="center">
 
-## ▶️ Rodando o projeto
+## Rodando o projeto
 
 </div>
 
@@ -111,7 +111,7 @@ http://localhost:3000
 
 <div align="center">
 
-## 👤 Autor
+## Autor
 
 Milton Teixeira
 
