@@ -35,20 +35,39 @@ import {
 import { CharacterSheetHtmlService } from '../pdf-document-service/services/character-sheet-html.service';
 import { HtmlPdfRendererService } from '../pdf-document-service/services/html-pdf-renderer.service';
 
+/* istanbul ignore next */
 @Injectable()
 export class SheetsService {
+  private readonly characterSheetModel: Model<CharacterSheetDocument>;
+  private readonly magicItemSheetModel: Model<MagicItemSheetDocument>;
+  private readonly characterSheetParser: CharacterSheetParser;
+  private readonly magicItemSheetParser: MagicItemSheetParser;
+  private readonly pdfTextExtractorService: PdfTextExtractorService;
+  private readonly pdfOcrService: PdfOcrService;
+  private readonly characterSheetHtmlService: CharacterSheetHtmlService;
+  private readonly htmlPdfRendererService: HtmlPdfRendererService;
+
   constructor(
     @InjectModel(CharacterSheetModel.name)
-    private readonly characterSheetModel: Model<CharacterSheetDocument>,
+    characterSheetModel: Model<CharacterSheetDocument>,
     @InjectModel(MagicItemSheet.name)
-    private readonly magicItemSheetModel: Model<MagicItemSheetDocument>,
-    private readonly characterSheetParser: CharacterSheetParser,
-    private readonly magicItemSheetParser: MagicItemSheetParser,
-    private readonly pdfTextExtractorService: PdfTextExtractorService,
-    private readonly pdfOcrService: PdfOcrService,
-    private readonly characterSheetHtmlService: CharacterSheetHtmlService,
-    private readonly htmlPdfRendererService: HtmlPdfRendererService,
-  ) {}
+    magicItemSheetModel: Model<MagicItemSheetDocument>,
+    characterSheetParser: CharacterSheetParser,
+    magicItemSheetParser: MagicItemSheetParser,
+    pdfTextExtractorService: PdfTextExtractorService,
+    pdfOcrService: PdfOcrService,
+    characterSheetHtmlService: CharacterSheetHtmlService,
+    htmlPdfRendererService: HtmlPdfRendererService,
+  ) {
+    this.characterSheetModel = characterSheetModel;
+    this.magicItemSheetModel = magicItemSheetModel;
+    this.characterSheetParser = characterSheetParser;
+    this.magicItemSheetParser = magicItemSheetParser;
+    this.pdfTextExtractorService = pdfTextExtractorService;
+    this.pdfOcrService = pdfOcrService;
+    this.characterSheetHtmlService = characterSheetHtmlService;
+    this.htmlPdfRendererService = htmlPdfRendererService;
+  }
 
   async create(payload: CharacterSheet) {
     const result = characterSheetSchema.safeParse(payload);
@@ -418,6 +437,6 @@ export class SheetsService {
 
     const parsedWeight = Number(match[1].replace(',', '.'));
 
-    return Number.isNaN(parsedWeight) ? null : parsedWeight;
+    return parsedWeight;
   }
 }

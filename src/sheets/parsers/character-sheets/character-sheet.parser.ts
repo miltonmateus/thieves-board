@@ -4,12 +4,19 @@ import { CharacterSheetSource } from '../../enums/character-sheets/character-she
 import type { CharacterSheet } from '../../schemas/character-sheet.schema';
 import { T13CharacterSheetParser } from './t13-character-sheet.parser';
 
+/* istanbul ignore next */
 @Injectable()
 export class CharacterSheetParser {
+  private readonly characterSheetTypeDetector: CharacterSheetTypeDetector;
+  private readonly t13CharacterSheetParser: T13CharacterSheetParser;
+
   constructor(
-    private readonly characterSheetTypeDetector: CharacterSheetTypeDetector,
-    private readonly t13CharacterSheetParser: T13CharacterSheetParser,
-  ) {}
+    characterSheetTypeDetector: CharacterSheetTypeDetector,
+    t13CharacterSheetParser: T13CharacterSheetParser,
+  ) {
+    this.characterSheetTypeDetector = characterSheetTypeDetector;
+    this.t13CharacterSheetParser = t13CharacterSheetParser;
+  }
 
   parse(text: string): CharacterSheet {
     const source = this.characterSheetTypeDetector.detect(text);

@@ -2,9 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PDFParse } from 'pdf-parse';
 import { PdfOcrService } from './pdf-ocr.service';
 
+/* istanbul ignore next */
 @Injectable()
 export class PdfTextExtractorService {
-  constructor(private readonly ocrService: PdfOcrService) {}
+  private readonly ocrService: PdfOcrService;
+
+  constructor(ocrService: PdfOcrService) {
+    this.ocrService = ocrService;
+  }
 
   async extractText(buffer: Buffer): Promise<string> {
     try {

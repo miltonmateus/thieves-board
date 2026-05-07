@@ -235,5 +235,20 @@ describe('MagicItemSheetParser', () => {
         'Não foi possível identificar o tipo da ficha de item mágico enviada.',
       );
     });
+
+    it('should reject sheets when current status appears before any value', () => {
+      expect(() =>
+        parser.parse(`
+          Situação Atual
+          Ficha de Item Mágico
+          Nome do item
+          Categoria de Poder
+          Pontos de Fadiga / Atuais
+          Nível de Sintonia
+          Traço de Consciência
+          Descrição da Alma
+        `),
+      ).toThrow(BadRequestException);
+    });
   });
 });

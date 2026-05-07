@@ -148,8 +148,10 @@ export const characterSheetSchema = z
 export type CharacterSheet = z.infer<typeof characterSheetSchema>;
 
 export const updateCharacterSheetSchema = characterSheetSchema
+  .omit({ sistema: true })
   .partial()
   .extend({
+    sistema: z.literal('t13').optional(),
     tamanho: sizeSchema.partial().optional(),
     capacidadesFisicas: physicalCapacitiesSchema
       .partial()
