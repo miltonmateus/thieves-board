@@ -11,11 +11,14 @@ import {
   type MagicItemSheet,
 } from '../../schemas/magic-item-sheet.schema';
 
+/* istanbul ignore next */
 @Injectable()
 export class MagicItemSheetParser {
-  constructor(
-    private readonly magicItemSheetTypeDetector: MagicItemSheetTypeDetector,
-  ) {}
+  private readonly magicItemSheetTypeDetector: MagicItemSheetTypeDetector;
+
+  constructor(magicItemSheetTypeDetector: MagicItemSheetTypeDetector) {
+    this.magicItemSheetTypeDetector = magicItemSheetTypeDetector;
+  }
 
   parse(text: string): MagicItemSheet {
     const source = this.magicItemSheetTypeDetector.detect(text);

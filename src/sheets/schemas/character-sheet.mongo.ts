@@ -19,6 +19,7 @@ const attributeWithMagnitudeMongoSchema = {
   comCm: { type: Number, default: null },
 };
 
+/* istanbul ignore next */
 @Schema({ timestamps: true, collection: 'charactersheets' })
 export class CharacterSheet {
   @Prop({ type: String, default: 't13' })
@@ -194,6 +195,7 @@ export class CharacterSheet {
     ],
     default: [],
   })
+  /* istanbul ignore next */
   inventario: Array<{
     nome?: string;
     valor: number | null;

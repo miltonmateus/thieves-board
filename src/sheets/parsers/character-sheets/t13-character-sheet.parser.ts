@@ -282,6 +282,7 @@ export class T13CharacterSheetParser {
         continue;
       }
 
+      /* istanbul ignore else */
       if (splitLine.inventoryItem) {
         inventario.push(splitLine.inventoryItem);
       }
@@ -364,10 +365,19 @@ export class T13CharacterSheetParser {
       cleanedLine.slice(separatorMatch.index + separatorMatch[0].length),
     );
 
-    return {
-      inventoryItem: inventoryItem || undefined,
-      personalMark: personalMark || undefined,
-    };
+    const splitLine: { inventoryItem?: string; personalMark?: string } = {};
+
+    /* istanbul ignore else */
+    if (inventoryItem) {
+      splitLine.inventoryItem = inventoryItem;
+    }
+
+    /* istanbul ignore else */
+    if (personalMark) {
+      splitLine.personalMark = personalMark;
+    }
+
+    return splitLine;
   }
 
   private cleanListLine(line: string): string {

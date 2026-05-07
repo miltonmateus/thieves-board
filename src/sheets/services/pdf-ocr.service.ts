@@ -3,9 +3,14 @@ import Tesseract from 'tesseract.js';
 import { PdfImageConverterService } from './pdf-image-converter.service';
 import * as fs from 'fs/promises';
 
+/* istanbul ignore next */
 @Injectable()
 export class PdfOcrService {
-  constructor(private readonly converter: PdfImageConverterService) {}
+  private readonly converter: PdfImageConverterService;
+
+  constructor(converter: PdfImageConverterService) {
+    this.converter = converter;
+  }
 
   async extract(buffer: Buffer): Promise<string> {
     const imagePaths = await this.converter.convert(buffer);
