@@ -105,11 +105,6 @@ POST /dice/roll
 
 ### Sistema de Quests
 
-- Listagem de quests
-- Criação de quest
-- Seleção de quest ativa
-- Conclusão de quest
-
 #### Endpoints
 
 POST /quests  
