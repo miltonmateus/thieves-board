@@ -189,6 +189,6 @@ pnpm run build
 
 ## Autor
 
-Milton Teixeira
+Milton Teixeira (Bardo)
 
 </div>
