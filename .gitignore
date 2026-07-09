@@ -55,9 +55,7 @@ src/coverage/
 .codex
 item-teste.pdf
 teste.pdf
-docs/test-priority-report.html
-docs/test-priority-report.pdf
-/docs
+docs/
 
 # Runtime data
 pids
@@ -67,3 +65,7 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# MongoDB backups
+backup-mongo/
+backup-mongo.zip

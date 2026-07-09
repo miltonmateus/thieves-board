@@ -115,6 +115,26 @@ POST /quests/complete
 
 ---
 
+### Sistema de Aventuras
+
+- Criação de aventuras com nome, cenário e descrição pública
+- Campo de anotações privadas do mestre para spoilers, segredos e bastidores
+- Listagem pública sem expor anotações do mestre
+- Visualização de mestre com anotações privadas
+
+> Observação: o endpoint de mestre separa os dados privados da resposta pública,
+> mas autenticação/autorização ainda precisa ser adicionada para garantir acesso
+> apenas ao mestre.
+
+#### Endpoints
+
+POST /adventures  
+GET /adventures  
+GET /adventures/:id  
+GET /adventures/:id/master
+
+---
+
 <div align="center">
 
 ## Arquitetura
@@ -123,6 +143,7 @@ POST /quests/complete
 
 ```bash
 src/
+├── adventures/
 ├── common/
 ├── quests/
 ├── dice/

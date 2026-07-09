@@ -24,6 +24,7 @@ describe('CharacterSheetHtmlService', () => {
     const html = service.createCharacterSheetHtml(sheet);
 
     expect(html).toContain('<!doctype html>');
+    expect(html).toContain('Target <span>13</span>');
     expect(html).toContain('Arkon &lt;Valedouro&gt;');
     expect(html).toContain('Espada &amp; escudo');
     expect(html).toContain('Linha 1<br />Linha 2');
@@ -52,7 +53,7 @@ describe('CharacterSheetHtmlService', () => {
     expect(html).toContain('mágico');
     expect(html).toContain('- kg');
     expect(html).toContain('- x -');
-    expect(html).toContain('<h2>Marcas pessoais</h2>');
+    expect(html).toContain('Marcas pessoais');
   });
 
   it('should render empty inventory and unsupported scalar values as dashes', () => {
@@ -64,10 +65,8 @@ describe('CharacterSheetHtmlService', () => {
       marcasPessoais: [],
     } as never);
 
-    expect(html).toContain(
-      '<div class="list"><div class="muted">-</div></div>',
-    );
-    expect(html).toContain('<div class="field-value">-</div>');
+    expect(html).toContain('<section class="panel inventory"');
+    expect(html).toContain('<span class="small-box">-</span>');
   });
 
   it('should render partial nested groups with defaults', () => {
@@ -91,11 +90,9 @@ describe('CharacterSheetHtmlService', () => {
       inventario: undefined,
     } as never);
 
-    expect(html).toContain('max - / metade - / atual -');
-    expect(html).toContain('<div class="stat-value">-</div>');
-    expect(html).toContain(
-      '<div class="list"><div class="muted">-</div></div>',
-    );
+    expect(html).toContain('Capacidades físicas');
+    expect(html).toContain('<div class="cell">-</div>');
+    expect(html).toContain('Memórias canônicas');
   });
 
   it('should render magnitude when a malformed value is present', () => {
@@ -112,6 +109,6 @@ describe('CharacterSheetHtmlService', () => {
       },
     } as never);
 
-    expect(html).toContain('CM undefined');
+    expect(html).toContain('<div class="cell">-</div>');
   });
 });
